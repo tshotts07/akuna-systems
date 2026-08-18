@@ -187,5 +187,26 @@ resource "aws_security_group" "alb" {
 
 resource "aws_security_group" "ecs" {
     name        = "akuna-ecs-sg"
-    description = 
+    description = "Allow application traffic from the load balancer"
+    vpc_id      = aws_vpc.main.id
+
+    ingress {
+        description      = "Application traffic from ALB"
+        from_port        = 8080
+        to_port          = 8080
+        protocol         = "tcp"
+        security_groups  = [aws_security_group.alb.id]
+    }
+
+    egress {
+        description = "Allow outbound traffic"
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    tags = {
+        Name = "akuna-ecs-sg"
+    }
 }
