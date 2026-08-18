@@ -210,3 +210,7 @@ resource "aws_security_group" "ecs" {
         Name = "akuna-ecs-sg"
     }
 }
+
+resource "aws_lb" "app" {
+    name            = "akuna-web-service-alb"
+}
