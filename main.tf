@@ -367,3 +367,39 @@ resource "aws_ecs_task_definition" "app" {
         Name = "akuna-web-service-task"
     }
 }
+
+resource "aws_ecs_service" "app" {
+    name = "akuna-web-service"
+    cluster = "aws_ecs_cluster.main.id
+    task_defintion = aws_ecs_task_definition.app.arn
+    desired_count = 2
+    launch_type = "FARGATE"
+
+    network_configuration {
+        subnets = [
+            aws_subnet.private_1.id,
+            aws_subnet.private_2.id
+        ]
+
+        security_groups = [
+            aws_security_group.ecs.id
+        ]
+
+        assign_public_ip = false
+    }
+
+    load_balancer {
+        target_group_arn = aws_lb_target_group.app.arn
+        container_name = "app"
+        container_port = 8080
+    }
+
+    depends_on = [
+        aws_lb_listener.http,
+        aws_iam_role_policy_attachment.ecs_task_execution
+    ]
+
+    tags = {
+        Name = "akuna-web-service"
+    }
+}
