@@ -394,6 +394,10 @@ resource "aws_ecs_service" "app" {
         container_port = 8080
     }
 
+    lifecycle {
+        ignore_changes = [desired_count]
+    }
+
     depends_on = [
         aws_lb_listener.http,
         aws_iam_role_policy_attachment.ecs_task_execution
