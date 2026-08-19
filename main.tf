@@ -403,3 +403,16 @@ resource "aws_ecs_service" "app" {
         Name = "akuna-web-service"
     }
 }
+
+resource "aws_appautoscaling_target" "ecs" {
+    max_capacity = 6
+    min_capacity = 2
+    resource_id = "service/${aws_ecs_cluster.main.name}/${aws_ecs_service.app.name}"
+    scalable_dimension = "ecs:service:DesiredCount"
+    service_namespace = "ecs"
+}
+
+resource "aws_appautoscaling_policy" "ecs_cpu" {
+    name = "akuna-ecs-cpu-autoscaling"
+    policy_type = "TargetTrackingScaling"
+}
