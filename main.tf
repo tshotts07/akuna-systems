@@ -316,3 +316,54 @@ resouce "aws_iam_role_policy_attachment" "ecs_task_execution" {
     policy_arm  = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy" 
 }
 
+resource "aws_ecs_task_definition" "app" {
+    family                      = "akuna-web-service"
+    requires_compatibilities    = ["FARGATE"]
+    network_mode                = "awsvpc"
+
+    cpu    = "256"
+    memory = "512"
+
+    execution_role_arn = aws_iam_role_policy.ecs_task_execution.arn
+
+    container_definitions = jsonencode([
+        {
+            name = "app"
+            image = "${aws_ecr_repository.app.repository_url}:latest"
+            essential = true
+
+            portMappings = [
+                {
+                    containerPort = 8080
+                    hostPort = 8080
+                    protocol = "tcp"
+                }
+            ]
+
+            logConfiguration = {
+                logDriver = "awslogs"
+
+                options = {
+                    "awslogs-group" = aws_cloudwatch_log_group.app.name
+                    "awslogs-region" = var.aws_region
+                    "awslogs-stream-prefix" = "app"
+                }
+            }
+
+            healthCheck = {
+                command = [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:8080/health || exit 1"
+                ]
+                interval = 30
+                timeout = 5
+                retries = 3
+                startPeriod = 10
+            }
+        }
+    ])
+
+    tags = {
+        Name = "akuna-web-service-task"
+    }
+}
