@@ -263,3 +263,34 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 }
+
+resource "aws_ecr_repository" "app" {
+    name                    = "akuna-web-service"
+    image_tag_mutability    = "MUTABLE"
+
+    image_scanning_configuration {
+        scan_on_push = true
+    }
+
+    tags = {
+        Name = "akuna-web-service"
+    }
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+    name                = "/ecs/akuna-web-service"
+    retention_in_days = 30
+
+    tags = {
+        Name = "akuna-web-service-logs"
+    }
+}
+
+resource "aws_ecs_cluster" "main" {
+    name = "akuna-web-services-cluster"
+
+    tags = {
+        Name = "akuna-web-service-cluster"
+    }
+}
+
