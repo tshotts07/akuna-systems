@@ -434,3 +434,47 @@ resource "aws_appautoscaling_policy" "ecs_cpu" {
         scale_out_cooldown = 60
     }
 }
+
+resource "aws_cloudwatch_metric_alarm" "ecs_high_cpu" {
+    alarm_name = "akuna-ecs-high-cpu"
+    alarm_description = "ECS service average CPU utilization is above 80 percent."
+    comparison_operator = "GreaterThanThreshold"
+    evaluation_periods = 2
+    metric_name = "CPUUtilization"
+    namespace = "AWS/ECS"
+    period = 60
+    statistic = "Average"
+    threshold = 80
+    treat_missing_data = "notBreaching"
+
+    dimensions = {
+        ClusterName = aws_ecs_cluster.main.name
+        ServiceName = aws_ecs_service.app.name
+    }
+
+    tags = {
+        Name = "akuna-ecs-high-cpu"
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "target_5xx" {
+    alarm_name = "akuna-target-5xx-errors"
+    alarm_description = "Application targets are returning elevated HTTP 5xx errors."
+    comparison_operator = "GreaterThanThreshold"
+    evaluation_periods = 2
+    metric_name = "HTTPCode_Target_5XX_Count"
+    namespace = "AWS/ApplicationELB"
+    period = 60
+    statistic = "Sum"
+    threshold = 5
+    treat_missing_data = "notBreaching"
+
+    dimensions = {
+        LoadBalancer = aws_lb.app.arn_suffix
+        TargetGroup = aws_lb_target_group.app.arn_suffix
+    }
+
+    tags = {
+        Name = "akuna-target-5xx-errors"
+    }
+}
